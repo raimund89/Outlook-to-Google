@@ -58,30 +58,9 @@ namespace OutlookToGoogle
                 updateTimer.Change(0, msIntervals[Properties.Settings.Default.updateFreq]);
         }
 
-        public static bool CheckWritePermissions(String path = null)
-        {
-            FileIOPermission fileIOPermission;
-
-            if(path != null)
-                fileIOPermission = new FileIOPermission(FileIOPermissionAccess.Write, path);
-            else
-                fileIOPermission = new FileIOPermission(FileIOPermissionAccess.Write, GetICSPath());
-
-            try
-            {
-                fileIOPermission.Demand();
-                return true;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Couldn't get permission to write the file: " + e.Message);
-                return false;
-            }
-        }
-
         public static void OnTimerFired(Object stateInfo)
         {
-            if(!CheckWritePermissions())
+            if(!CheckWritePermissions(GetICSPath()))
             {
                 Program.trayIcon.ShowBalloonTip(1000, "OutlookToGoogle", "No permissions to file or\nfile doesn't exist.", ToolTipIcon.Error);
                 return;
@@ -109,12 +88,28 @@ namespace OutlookToGoogle
             }
         }
 
+        public static bool CheckWritePermissions(String path)
+        {
+            FileIOPermission fileIOPermission = new FileIOPermission(FileIOPermissionAccess.Write, path);
+
+            try
+            {
+                fileIOPermission.Demand();
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Couldn't get permission to write the file: " + e.Message);
+                return false;
+            }
+        }
+
         public static String GetICSPath(String path=null, String name=null)
         {
             if(path == null || name == null)
-                return Properties.Settings.Default.icsPath + "\\" + Properties.Settings.Default.icsName + ".ics";
+                return Environment.ExpandEnvironmentVariables(Properties.Settings.Default.icsPath + "\\" + Properties.Settings.Default.icsName + ".ics");
             else
-                return path + "\\" + name + ".ics";
+                return Environment.ExpandEnvironmentVariables(path + "\\" + name + ".ics");
         }
     }
 
@@ -152,8 +147,9 @@ namespace OutlookToGoogle
             // AKA, just set it according to the property
             Program.ToggleStartup(Properties.Settings.Default.startWithSystem);
 
+            Console.WriteLine(Program.GetICSPath());
             // Check if the filename specified can be written to
-            if (!Program.CheckWritePermissions())
+            if (!Program.CheckWritePermissions(Program.GetICSPath()))
             {
                 Program.trayIcon.ShowBalloonTip(1000, "OutlookToGoogle", "No permissions to file or\nfile doesn't exist.", ToolTipIcon.Error);
             }
