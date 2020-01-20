@@ -3,10 +3,7 @@ using System.Collections.Generic;
 using System.Security.Permissions;
 using System.Windows.Forms;
 
-// TODO: On selecting a folder, do some checks if 1) the file exists, 2) you have writing rights, 3) warn user in these cases
-// TODO: On OK, do checks like 1) if file already exists, 2) sure to not start with the system, 3) etc.
 // TODO: Program doesn't clean up nicely, RAM keeps increasing 2-3 MB every update. Wrong wrong wrong.
-// TODO: File permissions can change. So check when setting a filename, on startup and on WriteICS
 // TODO: Enter Google account details to immediately update the calendar there instead of using ICS
 
 namespace OutlookToGoogle

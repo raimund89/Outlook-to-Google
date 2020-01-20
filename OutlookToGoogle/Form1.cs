@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Windows.Forms;
 
@@ -53,17 +54,30 @@ namespace OutlookToGoogle
             // First, when user doesn't want it to start and that wasn't the case earlier, ask them to be sure
             if(Properties.Settings.Default.startWithSystem != this.checkBox1.Checked && !this.checkBox1.Checked)
             {
-                DialogResult dialogResult = MessageBox.Show("Are you sure you don't want OutlookToICS\nto start with Windows?", "Are you sure?", MessageBoxButtons.YesNo);
-
                 // Apparently the user made a mistake, so don't just close but let them look at it again.
-                if (dialogResult == DialogResult.No)
+                if (DialogResult.No == MessageBox.Show("Are you sure you don't want OutlookToICS\nto start with Windows?", "Are you sure?", MessageBoxButtons.YesNo))
                     return;
             }
 
-            if(!Program.CheckWritePermissions(Program.GetICSPath(this.textBox1.Text, this.textBox2.Text)))
+            if (!Program.CheckWritePermissions(Program.GetICSPath(this.textBox1.Text, this.textBox2.Text)))
             {
                 MessageBox.Show("You don't have write permissions to the *.isc-file.\nEnter a directory and filename to which you have write permissions.", "Settings error", MessageBoxButtons.OK);
                 return;
+            }
+
+            if (Program.GetICSPath() != Program.GetICSPath(this.textBox1.Text, this.textBox2.Text))
+            {
+                // The filename changed. Check if it exists, if so throw a prompt
+                if(File.Exists(Program.GetICSPath(this.textBox1.Text, this.textBox2.Text)))
+                {
+                    // Apparently the user made a mistake, so don't just close but let them look at it again.
+                    if (DialogResult.No == MessageBox.Show("File already exists. Are you\nsure you want to use it?", "Are you sure?", MessageBoxButtons.YesNo))
+                        return;
+                }
+
+                // If that's ok, ask the user if they want to remove the old one
+                if (DialogResult.Yes == MessageBox.Show("Do you want to remove the old file?", "Clean up?", MessageBoxButtons.YesNo))
+                    File.Delete(Program.GetICSPath());
             }
 
             // Save all settings
