@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{BEFE82DA-71BC-4BC0-93C4-6E6C9A6AA385}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <RootNamespace>OutlookToGoogle</RootNamespace>
     <AssemblyName>OutlookToGoogle</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
