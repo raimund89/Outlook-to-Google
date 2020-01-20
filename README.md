@@ -23,3 +23,5 @@ The application is functional, however I would like to add several things to it:
 - [ ] Recurring items are converted to multiple single items
 - [ ] olResponseOrganized doesn't have the right partstat
 - [ ] The sensitivity 'private' doesn't have the right ICS classification
+- [ ] Reminders are not included
+- [ ] Outlook itself exports a 'TRANSP' tag, no idea what to do with that...
