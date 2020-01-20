@@ -11,7 +11,7 @@ namespace OutlookToGoogle
             InitializeComponent();
         }
 
-        private void Form1_Activated(object sender, EventArgs e)
+        private void Form1_Shown(object sender, EventArgs e)
         {
             this.label2.Text = Program.ics.GetVersion();
             this.label4.Text = Program.ics.GetDefaultProfile();
@@ -51,13 +51,19 @@ namespace OutlookToGoogle
         private void BtnOK_clicked(object sender, EventArgs e)
         {
             // First, when user doesn't want it to start and that wasn't the case earlier, ask them to be sure
-            if(Properties.Settings.Default.startWithSystem != this.checkBox1.Checked && !Properties.Settings.Default.startWithSystem)
+            if(Properties.Settings.Default.startWithSystem != this.checkBox1.Checked && !this.checkBox1.Checked)
             {
                 DialogResult dialogResult = MessageBox.Show("Are you sure you don't want OutlookToICS\nto start with Windows?", "Are you sure?", MessageBoxButtons.YesNo);
 
                 // Apparently the user made a mistake, so don't just close but let them look at it again.
                 if (dialogResult == DialogResult.No)
                     return;
+            }
+
+            if(!Program.CheckWritePermissions(Program.GetICSPath(this.textBox1.Text, this.textBox2.Text)))
+            {
+                MessageBox.Show("You don't have write permissions to the *.isc-file.\nEnter a directory and filename to which you have write permissions.", "Settings error", MessageBoxButtons.OK);
+                return;
             }
 
             // Save all settings

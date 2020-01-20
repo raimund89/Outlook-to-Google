@@ -5,7 +5,6 @@ using System.Windows.Forms;
 
 // TODO: On selecting a folder, do some checks if 1) the file exists, 2) you have writing rights, 3) warn user in these cases
 // TODO: On OK, do checks like 1) if file already exists, 2) sure to not start with the system, 3) etc.
-// TODO: clicking on any item of the NotifyIcon fires the 'Click' action. Shouldn't happen.
 // TODO: Program doesn't clean up nicely, RAM keeps increasing 2-3 MB every update. Wrong wrong wrong.
 // TODO: File permissions can change. So check when setting a filename, on startup and on WriteICS
 // TODO: Enter Google account details to immediately update the calendar there instead of using ICS
@@ -45,32 +44,8 @@ namespace OutlookToGoogle
         static void Main()
         {
             /**************************/
-            /*     Startup Checks     */
-            /**************************/
-
-            // Check if 'On system startup' should be set.
-            // AKA, just set it according to the property
-            ToggleStartup(Properties.Settings.Default.startWithSystem);
-
-            // Check if the filename specified can be written to
-            FileIOPermission fileIOPermission = new FileIOPermission(FileIOPermissionAccess.Write, GetICSPath());
-
-            try
-            {
-                fileIOPermission.Demand();
-            }
-            catch(Exception e)
-            {
-                Console.WriteLine("Couldn't get permission to write the file: " + e.Message);
-            }
-
-            /**************************/
             /*    Application Entry   */
             /**************************/
-
-            // Start the timer
-            InitializeTimer();
-            // And call it once for good measure
 
             // Start the tray icon
             Application.EnableVisualStyles();
@@ -86,9 +61,35 @@ namespace OutlookToGoogle
                 updateTimer.Change(0, msIntervals[Properties.Settings.Default.updateFreq]);
         }
 
+        public static bool CheckWritePermissions(String path = null)
+        {
+            FileIOPermission fileIOPermission;
+
+            if(path != null)
+                fileIOPermission = new FileIOPermission(FileIOPermissionAccess.Write, path);
+            else
+                fileIOPermission = new FileIOPermission(FileIOPermissionAccess.Write, GetICSPath());
+
+            try
+            {
+                fileIOPermission.Demand();
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Couldn't get permission to write the file: " + e.Message);
+                return false;
+            }
+        }
+
         public static void OnTimerFired(Object stateInfo)
         {
-            Console.WriteLine("Timer fired");
+            if(!CheckWritePermissions())
+            {
+                Program.trayIcon.ShowBalloonTip(1000, "OutlookToGoogle", "No permissions to file or\nfile doesn't exist.", ToolTipIcon.Error);
+                return;
+            }
+
             ics.ReadCalendar();
             ics.WriteICS(GetICSPath());
             ics.Cleanup();
@@ -111,9 +112,12 @@ namespace OutlookToGoogle
             }
         }
 
-        public static String GetICSPath()
+        public static String GetICSPath(String path=null, String name=null)
         {
-            return Properties.Settings.Default.icsPath + "\\" + Properties.Settings.Default.icsName + ".ics";
+            if(path == null || name == null)
+                return Properties.Settings.Default.icsPath + "\\" + Properties.Settings.Default.icsName + ".ics";
+            else
+                return path + "\\" + name + ".ics";
         }
     }
 
@@ -123,7 +127,10 @@ namespace OutlookToGoogle
 
         public MyCustomApplicationContext()
         {
-            // Initialize Tray Icon
+            /**************************/
+            /*    Setup Tray Icon     */
+            /**************************/
+
             Program.trayIcon = new NotifyIcon()
             {
                 Icon = Properties.Resources.AppIcon,
@@ -138,8 +145,24 @@ namespace OutlookToGoogle
                 Visible = true
             };
 
-            //Program.trayIcon.Click += new EventHandler(this.Settings);
-            //Program.trayIcon.MouseUp += new MouseEventHandler(delegate (object sender, MouseEventArgs e) { Program.trayIcon.ContextMenu.Show(); });
+            Program.trayIcon.BalloonTipClicked += new EventHandler(this.Settings);
+
+            /**************************/
+            /*     Startup Checks     */
+            /**************************/
+
+            // Check if 'On system startup' should be set.
+            // AKA, just set it according to the property
+            Program.ToggleStartup(Properties.Settings.Default.startWithSystem);
+
+            // Check if the filename specified can be written to
+            if (!Program.CheckWritePermissions())
+            {
+                Program.trayIcon.ShowBalloonTip(1000, "OutlookToGoogle", "No permissions to file or\nfile doesn't exist.", ToolTipIcon.Error);
+            }
+
+            // Start the timer
+            Program.InitializeTimer();
         }
 
         void Exit(object sender, EventArgs e)
@@ -167,7 +190,7 @@ namespace OutlookToGoogle
 
         void Update(object sender, EventArgs e)
         {
-            Program.OnTimerFired(null);
+            Program.InitializeTimer();
         }
     }
 }
