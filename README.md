@@ -19,7 +19,7 @@ The application is functional, however I would like to add several things to it:
 - [ ] Maybe switch from System.Threading.Timer to a scheduled Windows Service.
 
 ## Known issues
-- [ ] Not nicely cleaning up, every calendar update the RAM-usage increases with 2-3 MB.
+- [ ] Not nicely cleaning up, every calendar update the RAM-usage increases with 2-3 MB. But automatic cleanup does kick in at some point.
 - [ ] ICS validators say Europe/Amsterdam is not a valid timezone. Calendar programs don't have a problem though.
 - [ ] Summary doesn't have a language tag. Not required, but recommended
 - [ ] Recurring items are converted to multiple single items
