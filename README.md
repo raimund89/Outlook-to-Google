@@ -1,6 +1,8 @@
 # Outlook-to-Google
 Standalone Windows Application to export an ICS-file that can be added to Google Calendar or any other calendar app.
 
+![Screenshot of settings](https://github.com/raimund89/Outlook-to-Google/OutlookToGoogle.png)
+
 ## Introduction
 Outlook has several ways to send a calendar to others, either via E-mail or by publishing it to a directory. The problem is, this functionality leaves very little control over what to export and how. On top of that, the exported ICS is incompatible with most calendar applications (like Google Calendar or Lightning) because it doesn't comply with the ICS file specification ([RFC 5545](https://tools.ietf.org/html/rfc5545)).
 
