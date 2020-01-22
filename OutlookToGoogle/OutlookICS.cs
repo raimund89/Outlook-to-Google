@@ -49,43 +49,28 @@ namespace OutlookToGoogle
 
             foreach (AppointmentItem item in calendarItems)
             {
-                if (item.IsRecurring)
+                if(item.IsRecurring)
                 {
                     RecurrencePattern rp = item.GetRecurrencePattern();
-                    AppointmentItem recur = null;
-
-                    DateTime first = start.AddHours(item.Start.Hour).AddMinutes(item.Start.Minute);
-                    DateTime last = end.AddHours(item.Start.Hour).AddMinutes(item.Start.Minute);
-
-                    for (DateTime cur = first; cur <= last; cur = cur.AddDays(1))
-                    {
-                        try
-                        {
-                            recur = rp.GetOccurrence(cur);
-                            items.Add(recur);
-                        }
-                        catch
-                        {
-
-                        }
-                    }
+                    if(rp.PatternStartDate.CompareTo(end) < 0 && (rp.NoEndDate || rp.PatternEndDate.CompareTo(start) > 0))
+                        items.Add(item);
                 }
                 else
                 {
                     if (item.Start.CompareTo(start) > 0 && item.Start.CompareTo(end) < 0)
-                    {
                         items.Add(item);
-                    }
                 }
             }
         }
 
-        // TODO: Recurring items should not be recorded separately, but using RRULE tag. Lots of double UIDs now. But what if one instance is cancelled?
         // TODO: Finish/check priority, participant type, meeting status
         // TODO: Summary: add language tag
         // TODO: olResponseOrganized doesn't have the right partstat
         // TODO: Sensitivity private doesn't have the right class
-        // TODO: Europe/Amsterdam is not valid, according to ICS validator
+        // TODO: Enable recognition and use of any timezone
+        // TODO: olImportanceLow gives the wrong number
+
+        // TODO: Recurrences are implemented. However, several recurrenceTypes are not. Also, what's with the MONTLY + BYSETPOS? And implement YEARLY
 
         public void WriteICS(String filename)
         {
@@ -98,12 +83,37 @@ namespace OutlookToGoogle
                 sw.WriteLine("BEGIN:VCALENDAR");
                 sw.WriteLine("VERSION:2.0");
                 sw.WriteLine("PRODID:-//Microsoft Corporation//Outlook 16.0 MIMEDIR//EN");
+                sw.WriteLine("METHOD:PUBLISH");
+                sw.WriteLine("X-WR-CALNAME:" + GetDefaultProfile());
+                sw.WriteLine("X-WR-TIMEZONE:Europe/Amsterdam");
+
+                // Force recognition of Europe/Amsterdam timezone for now
+                sw.WriteLine("BEGIN:VTIMEZONE");
+                sw.WriteLine("TZID:Europe/Amsterdam");
+                sw.WriteLine("X-LIC-LOCATION:Europe/Amsterdam");
+                sw.WriteLine("BEGIN:DAYLIGHT");
+                sw.WriteLine("TZOFFSETFROM:+0100");
+                sw.WriteLine("TZOFFSETTO:+0200");
+                sw.WriteLine("TZNAME:CEST");
+                sw.WriteLine("DTSTART:19700329T020000");
+                sw.WriteLine("RRULE:FREQ=YEARLY;INTERVAL=1;BYDAY=-1SU;BYMONTH=3");
+                sw.WriteLine("END:DAYLIGHT");
+                sw.WriteLine("BEGIN:STANDARD");
+                sw.WriteLine("TZOFFSETFROM:+0200");
+                sw.WriteLine("TZOFFSETTO:+0100");
+                sw.WriteLine("TZNAME:CET");
+                sw.WriteLine("DTSTART:19701025T030000");
+                sw.WriteLine("RRULE:FREQ=YEARLY;INTERVAL=1;BYDAY=-1SU;BYMONTH=10");
+                sw.WriteLine("END:STANDARD");
+                sw.WriteLine("END:VTIMEZONE");
 
                 foreach (AppointmentItem item in this.items)
                 {
                     sw.WriteLine("BEGIN:VEVENT");
 
                     sw.WriteLine("CREATED:" + created);
+
+                    sw.WriteLine("TRANSP:OPAQUE");
 
                     sw.WriteLine(wrapString("DESCRIPTION:" + item.Body.Replace("\r\n", "\\n").Replace(",", "\\,") + "\\n"));
 
@@ -210,6 +220,123 @@ namespace OutlookToGoogle
                     sw.WriteLine("DTSTAMP:" + item.CreationTime.ToUniversalTime().ToString(@"yyyyMMdd\THHmmssZ"));
                     // TRANSP
                     // RRULE
+                    if (item.IsRecurring)
+                    {
+                        Console.WriteLine("Recurring meeting: " + item.Subject);
+
+                        RecurrencePattern rp = item.GetRecurrencePattern();
+
+                        sw.Write("RRULE:");
+                        switch(rp.RecurrenceType)
+                        {
+                            case NetOffice.OutlookApi.Enums.OlRecurrenceType.olRecursDaily:
+                                sw.Write("FREQ=DAILY");
+                                break;
+                            case NetOffice.OutlookApi.Enums.OlRecurrenceType.olRecursMonthly:
+                                sw.Write("FREQ=MONTHLY");
+                                break;
+                            case NetOffice.OutlookApi.Enums.OlRecurrenceType.olRecursMonthNth:
+                                sw.Write("FREQ=MONTHLY");
+                                break;
+                            case NetOffice.OutlookApi.Enums.OlRecurrenceType.olRecursWeekly:
+                                sw.Write("FREQ=WEEKLY");
+                                break;
+                            case NetOffice.OutlookApi.Enums.OlRecurrenceType.olRecursYearly:
+                                sw.Write("FREQ=YEARLY");
+                                break;
+                            case NetOffice.OutlookApi.Enums.OlRecurrenceType.olRecursYearNth:
+                                break;
+                        }
+
+                        if (!rp.NoEndDate)
+                        {
+                            // There is an end-date, either in occurrences or an end-date
+                            if (rp.PatternEndDate != null)
+                            {
+                                sw.Write(";UNTIL=" + rp.PatternEndDate.ToUniversalTime().ToString(@"yyyyMMdd\THHmmssZ"));
+                            }
+                            else
+                            {
+                                sw.Write(";COUNT=" + rp.Occurrences);
+                            }
+                        }
+
+                        if (rp.Interval > 1)
+                        {
+                            sw.Write(";INTERVAL=" + rp.Interval);
+                        }
+
+                        string days = "";
+
+                        if((rp.DayOfWeekMask & NetOffice.OutlookApi.Enums.OlDaysOfWeek.olMonday) == NetOffice.OutlookApi.Enums.OlDaysOfWeek.olMonday)
+                        {
+                            if (days.Length > 0)
+                                days += ",";
+                            days += "MO";
+                        }
+                        if ((rp.DayOfWeekMask & NetOffice.OutlookApi.Enums.OlDaysOfWeek.olTuesday) == NetOffice.OutlookApi.Enums.OlDaysOfWeek.olTuesday)
+                        {
+                            if (days.Length > 0)
+                                days += ",";
+                            days += "TU";
+                        }
+                        if ((rp.DayOfWeekMask & NetOffice.OutlookApi.Enums.OlDaysOfWeek.olWednesday) == NetOffice.OutlookApi.Enums.OlDaysOfWeek.olWednesday)
+                        {
+                            if (days.Length > 0)
+                                days += ",";
+                            days += "WE";
+                        }
+                        if ((rp.DayOfWeekMask & NetOffice.OutlookApi.Enums.OlDaysOfWeek.olThursday) == NetOffice.OutlookApi.Enums.OlDaysOfWeek.olThursday)
+                        {
+                            if (days.Length > 0)
+                                days += ",";
+                            days += "TH";
+                        }
+                        if ((rp.DayOfWeekMask & NetOffice.OutlookApi.Enums.OlDaysOfWeek.olFriday) == NetOffice.OutlookApi.Enums.OlDaysOfWeek.olFriday)
+                        {
+                            if (days.Length > 0)
+                                days += ",";
+                            days += "FR";
+                        }
+                        if ((rp.DayOfWeekMask & NetOffice.OutlookApi.Enums.OlDaysOfWeek.olSaturday) == NetOffice.OutlookApi.Enums.OlDaysOfWeek.olSaturday)
+                        {
+                            if (days.Length > 0)
+                                days += ",";
+                            days += "SA";
+                        }
+                        if ((rp.DayOfWeekMask & NetOffice.OutlookApi.Enums.OlDaysOfWeek.olSunday) == NetOffice.OutlookApi.Enums.OlDaysOfWeek.olSunday)
+                        {
+                            if (days.Length > 0)
+                                days += ",";
+                            days += "SU";
+                        }
+
+                        sw.Write(";BYDAY=" + days);
+
+                        if(rp.RecurrenceType == NetOffice.OutlookApi.Enums.OlRecurrenceType.olRecursMonthNth)
+                        {
+                            sw.Write(";BYSETPOS=1");
+                        }
+
+                        sw.WriteLine();
+
+                        Exceptions exceptions = rp.Exceptions;
+
+                        foreach(NetOffice.OutlookApi.Exception exc in exceptions)
+                        {
+                            Console.WriteLine("Found an exception to item " + item.Subject);
+                            try
+                            {
+                                sw.Write(FormattedException(exc.AppointmentItem, created));
+                                Console.WriteLine("Wrote the exception");
+                            } 
+                            catch(System.Runtime.InteropServices.COMException e)
+                            {
+                                // Let's ignore any errors for the moment, they come from items out of the current range i think...
+                                Console.WriteLine("Error writing exception: " + e.Message);
+                            }
+                        }
+                    }
                     // SEQUENCE
 
                     // BEGIN:VALARM/END:VALARM
@@ -222,6 +349,123 @@ namespace OutlookToGoogle
             }
 
             Console.WriteLine("Finished writing!");
+        }
+
+        private String FormattedException(AppointmentItem item, String created)
+        {
+            String str = "BEGIN:VEVENT\r\n";
+
+            str += "CREATED:" + created + "\r\n";
+
+            str += "TRANSP:TRANSPARENT\r\n";
+
+            str += wrapString("DESCRIPTION:" + item.Body.Replace("\r\n", "\\n").Replace(",", "\\,") + "\\n") + "\r\n";
+
+            str += wrapString("SUMMARY:" + item.Subject) + "\r\n";
+
+            str += wrapString("UID:" + item.GlobalAppointmentID) + "\r\n";
+
+            str += wrapString("ORGANIZER;CN=\"" + item.GetOrganizer().Name + "\":mailto:" + item.GetOrganizer().PropertyAccessor.GetProperty(@"http://schemas.microsoft.com/mapi/proptag/0x39FE001E").ToString()) + "\r\n";
+
+            Recipients recipients = item.Recipients;
+            if (recipients.Count > 1)
+            {
+                foreach (Recipient recipient in recipients)
+                {
+                    String recip = "ATTENDEE;CN=\"" + recipient.Name + "\";";
+                    switch (recipient.Type)
+                    {
+                        case (int)NetOffice.OutlookApi.Enums.OlMeetingRecipientType.olOptional:
+                            recip += "ROLE=OPT-PARTICIPANT;";
+                            break;
+                        case (int)NetOffice.OutlookApi.Enums.OlMeetingRecipientType.olRequired:
+                            recip += "ROLE=REQ-PARTICIPANT;";
+                            break;
+                        case (int)NetOffice.OutlookApi.Enums.OlMeetingRecipientType.olOrganizer:
+                            recip += "ROLE=CHAIR;";
+                            break;
+                        case (int)NetOffice.OutlookApi.Enums.OlMeetingRecipientType.olResource:
+                            recip += "ROLE=NON-PARTICIPANT;";
+                            break;
+                    }
+                    if (item.ResponseRequested)
+                        recip += "RSVP=TRUE;";
+                    switch (recipient.MeetingResponseStatus)
+                    {
+                        case NetOffice.OutlookApi.Enums.OlResponseStatus.olResponseAccepted:
+                            recip += "PARTSTAT=ACCEPTED;";
+                            break;
+                        case NetOffice.OutlookApi.Enums.OlResponseStatus.olResponseDeclined:
+                            recip += "PARTSTAT=DECLINED;";
+                            break;
+                        case NetOffice.OutlookApi.Enums.OlResponseStatus.olResponseNotResponded:
+                            recip += "PARTSTAT=NEEDS-ACTION;";
+                            break;
+                        case NetOffice.OutlookApi.Enums.OlResponseStatus.olResponseOrganized:
+                            recip += "PARTSTAT=ACCEPTED;";
+                            break;
+                        case NetOffice.OutlookApi.Enums.OlResponseStatus.olResponseTentative:
+                            recip += "PARTSTAT=TENTATIVE;";
+                            break;
+                    }
+                    str += wrapString(recip + ":mailto:" + recipient.PropertyAccessor.GetProperty(@"http://schemas.microsoft.com/mapi/proptag/0x39FE001E").ToString()) + "\r\n";
+                }
+            }
+
+            if (item.Location.Length > 0)
+                str += wrapString("LOCATION:" + item.Location) + "\r\n";
+
+            {
+                str += "PRIORITY:";
+                switch (item.Importance)
+                {
+                    case NetOffice.OutlookApi.Enums.OlImportance.olImportanceNormal:
+                        str += "5" + "\r\n";
+                        break;
+                    case NetOffice.OutlookApi.Enums.OlImportance.olImportanceLow:
+                        str += "6" + "\r\n";
+                        break;
+                    case NetOffice.OutlookApi.Enums.OlImportance.olImportanceHigh:
+                        str += "1" + "\r\n";
+                        break;
+                }
+            }
+            {
+                // SENSITIVITY
+                switch (item.Sensitivity)
+                {
+                    case NetOffice.OutlookApi.Enums.OlSensitivity.olNormal:
+                        str += "CLASS:PUBLIC" + "\r\n";
+                        break;
+                    case NetOffice.OutlookApi.Enums.OlSensitivity.olConfidential:
+                        str += "CLASS:CONFIDENTIAL" + "\r\n";
+                        break;
+                    case NetOffice.OutlookApi.Enums.OlSensitivity.olPrivate:
+                        str += "CLASS:PRIVATE" + "\r\n";
+                        break;
+                    case NetOffice.OutlookApi.Enums.OlSensitivity.olPersonal:
+                        str += "CLASS:PRIVATE" + "\r\n";
+                        break;
+                }
+            }
+
+            if (item.AllDayEvent)
+            {
+                str += "DTSTART;VALUE=DATE:" + item.Start.ToString(@"yyyyMMdd") + "\r\n";
+                str += "DTEND;VALUE=DATE:" + item.End.ToString(@"yyyyMMdd") + "\r\n";
+            }
+            else
+            {
+                str += "DTSTART;TZID=" + TZConvert.WindowsToIana(item.StartTimeZone.ID, "NL") + ":" + item.StartInStartTimeZone.ToString(@"yyyyMMdd\THHmmss") + "\r\n";
+                str += "DTEND;TZID=" + TZConvert.WindowsToIana(item.EndTimeZone.ID, "NL") + ":" + item.EndInEndTimeZone.ToString(@"yyyyMMdd\THHmmss") + "\r\n";
+            }
+
+            str += "LAST-MODIFIED:" + item.LastModificationTime.ToUniversalTime().ToString(@"yyyyMMdd\THHmmssZ") + "\r\n";
+            str += "DTSTAMP:" + item.CreationTime.ToUniversalTime().ToString(@"yyyyMMdd\THHmmssZ") + "\r\n";
+
+            str += "END:VEVENT" + "\r\n";
+
+            return str;
         }
 
         private String wrapString(String input)
