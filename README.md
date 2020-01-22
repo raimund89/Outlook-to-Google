@@ -8,6 +8,9 @@ Outlook has several ways to send a calendar to others, either via E-mail or by p
 
 This standalone application allows exporting the calendar of the *current* Outlook user to be exported to an \*.ics file. If you place this file in for example Dropbox, it can then be imported into Google Calendar through it's Sharing link. The update frequency can be set to anything from every 5 minutes to every day.
 
+## Acknowledgements
+The application uses several libraries, all available through NuGet in Visual Studio. The main library is the NetOffice library ( specifically the Outlook and Office APIs) for communication with Outlook. Using this library makes the application independent of the version of Outlook. It also uses the TimeZoneConverter library to convert between Windows and IANA-compliant timezone designations. Last, the stdole.dll file is added to make sure Interop-functionality works, but it might not be necessary to include it.
+
 ## Todo list
 The application is functional, however I would like to add several things to it:
 - [ ] Specify a start and end date. At the moment it's fixed at 30 days before and 90 days after today
