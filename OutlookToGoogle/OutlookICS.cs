@@ -71,6 +71,7 @@ namespace OutlookToGoogle
         // TODO: olImportanceLow gives the wrong number
 
         // TODO: Recurrences are implemented. However, several recurrenceTypes are not. Also, what's with the MONTLY + BYSETPOS? And implement YEARLY
+        // TODO: Exceptions don't work yet. Cancelled events are still visible in google calendar
 
         public void WriteICS(String filename)
         {
@@ -82,7 +83,7 @@ namespace OutlookToGoogle
 
                 sw.WriteLine("BEGIN:VCALENDAR");
                 sw.WriteLine("VERSION:2.0");
-                sw.WriteLine("PRODID:-//Microsoft Corporation//Outlook 16.0 MIMEDIR//EN");
+                sw.WriteLine("PRODID:-//OutlookToGoogle/ICS");
                 sw.WriteLine("METHOD:PUBLISH");
                 sw.WriteLine("X-WR-CALNAME:" + GetDefaultProfile());
                 sw.WriteLine("X-WR-TIMEZONE:Europe/Amsterdam");
@@ -128,40 +129,40 @@ namespace OutlookToGoogle
                     {
                         foreach (Recipient recipient in recipients)
                         {
-                            String recip = "ATTENDEE;CN=\"" + recipient.Name + "\";";
+                            String recip = "ATTENDEE;CN=\"" + recipient.Name + "\"";
                             switch (recipient.Type)
                             {
                                 case (int)NetOffice.OutlookApi.Enums.OlMeetingRecipientType.olOptional:
-                                    recip += "ROLE=OPT-PARTICIPANT;";
+                                    recip += ";ROLE=OPT-PARTICIPANT";
                                     break;
                                 case (int)NetOffice.OutlookApi.Enums.OlMeetingRecipientType.olRequired:
-                                    recip += "ROLE=REQ-PARTICIPANT;";
+                                    recip += ";ROLE=REQ-PARTICIPANT";
                                     break;
                                 case (int)NetOffice.OutlookApi.Enums.OlMeetingRecipientType.olOrganizer:
-                                    recip += "ROLE=CHAIR;";
+                                    recip += ";ROLE=CHAIR";
                                     break;
                                 case (int)NetOffice.OutlookApi.Enums.OlMeetingRecipientType.olResource:
-                                    recip += "ROLE=NON-PARTICIPANT;";
+                                    recip += ";ROLE=NON-PARTICIPANT";
                                     break;
                             }
                             if (item.ResponseRequested)
-                                recip += "RSVP=TRUE;";
+                                recip += ";RSVP=TRUE";
                             switch (recipient.MeetingResponseStatus)
                             {
                                 case NetOffice.OutlookApi.Enums.OlResponseStatus.olResponseAccepted:
-                                    recip += "PARTSTAT=ACCEPTED;";
+                                    recip += ";PARTSTAT=ACCEPTED";
                                     break;
                                 case NetOffice.OutlookApi.Enums.OlResponseStatus.olResponseDeclined:
-                                    recip += "PARTSTAT=DECLINED;";
+                                    recip += ";PARTSTAT=DECLINED";
                                     break;
                                 case NetOffice.OutlookApi.Enums.OlResponseStatus.olResponseNotResponded:
-                                    recip += "PARTSTAT=NEEDS-ACTION;";
+                                    recip += ";PARTSTAT=NEEDS-ACTION";
                                     break;
                                 case NetOffice.OutlookApi.Enums.OlResponseStatus.olResponseOrganized:
-                                    recip += "PARTSTAT=ACCEPTED;";
+                                    recip += ";PARTSTAT=ACCEPTED";
                                     break;
                                 case NetOffice.OutlookApi.Enums.OlResponseStatus.olResponseTentative:
-                                    recip += "PARTSTAT=TENTATIVE;";
+                                    recip += ";PARTSTAT=TENTATIVE";
                                     break;
                             }
                             sw.WriteLine(wrapString(recip + ":mailto:" + recipient.PropertyAccessor.GetProperty(@"http://schemas.microsoft.com/mapi/proptag/0x39FE001E").ToString()));
@@ -219,7 +220,7 @@ namespace OutlookToGoogle
                     sw.WriteLine("LAST-MODIFIED:" + item.LastModificationTime.ToUniversalTime().ToString(@"yyyyMMdd\THHmmssZ"));
                     sw.WriteLine("DTSTAMP:" + item.CreationTime.ToUniversalTime().ToString(@"yyyyMMdd\THHmmssZ"));
                     // TRANSP
-                    // RRULE
+
                     if (item.IsRecurring)
                     {
                         Console.WriteLine("Recurring meeting: " + item.Subject);
@@ -372,40 +373,40 @@ namespace OutlookToGoogle
             {
                 foreach (Recipient recipient in recipients)
                 {
-                    String recip = "ATTENDEE;CN=\"" + recipient.Name + "\";";
+                    String recip = "ATTENDEE;CN=\"" + recipient.Name + "\"";
                     switch (recipient.Type)
                     {
                         case (int)NetOffice.OutlookApi.Enums.OlMeetingRecipientType.olOptional:
-                            recip += "ROLE=OPT-PARTICIPANT;";
+                            recip += ";ROLE=OPT-PARTICIPANT";
                             break;
                         case (int)NetOffice.OutlookApi.Enums.OlMeetingRecipientType.olRequired:
-                            recip += "ROLE=REQ-PARTICIPANT;";
+                            recip += ";ROLE=REQ-PARTICIPANT";
                             break;
                         case (int)NetOffice.OutlookApi.Enums.OlMeetingRecipientType.olOrganizer:
-                            recip += "ROLE=CHAIR;";
+                            recip += ";ROLE=CHAIR";
                             break;
                         case (int)NetOffice.OutlookApi.Enums.OlMeetingRecipientType.olResource:
-                            recip += "ROLE=NON-PARTICIPANT;";
+                            recip += ";ROLE=NON-PARTICIPANT";
                             break;
                     }
                     if (item.ResponseRequested)
-                        recip += "RSVP=TRUE;";
+                        recip += ";RSVP=TRUE";
                     switch (recipient.MeetingResponseStatus)
                     {
                         case NetOffice.OutlookApi.Enums.OlResponseStatus.olResponseAccepted:
-                            recip += "PARTSTAT=ACCEPTED;";
+                            recip += ";PARTSTAT=ACCEPTED";
                             break;
                         case NetOffice.OutlookApi.Enums.OlResponseStatus.olResponseDeclined:
-                            recip += "PARTSTAT=DECLINED;";
+                            recip += ";PARTSTAT=DECLINED";
                             break;
                         case NetOffice.OutlookApi.Enums.OlResponseStatus.olResponseNotResponded:
-                            recip += "PARTSTAT=NEEDS-ACTION;";
+                            recip += ";PARTSTAT=NEEDS-ACTION";
                             break;
                         case NetOffice.OutlookApi.Enums.OlResponseStatus.olResponseOrganized:
-                            recip += "PARTSTAT=ACCEPTED;";
+                            recip += ";PARTSTAT=ACCEPTED";
                             break;
                         case NetOffice.OutlookApi.Enums.OlResponseStatus.olResponseTentative:
-                            recip += "PARTSTAT=TENTATIVE;";
+                            recip += ";PARTSTAT=TENTATIVE";
                             break;
                     }
                     str += wrapString(recip + ":mailto:" + recipient.PropertyAccessor.GetProperty(@"http://schemas.microsoft.com/mapi/proptag/0x39FE001E").ToString()) + "\r\n";
