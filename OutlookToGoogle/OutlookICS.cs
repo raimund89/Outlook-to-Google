@@ -75,6 +75,9 @@ namespace OutlookToGoogle
         // TODO: Recurrences are implemented. However, several recurrenceTypes are not. Also, what's with the MONTLY + BYSETPOS? And implement YEARLY
         // TODO: Exceptions don't work yet. Cancelled events are still visible in google calendar
 
+        // TODO: Alarm now only does minutes before and DISPLAY. But other actions or reminder patterns are not supported.
+        // TODO: Multiple alarms are not supported
+
         public void WriteICS(String filename)
         {
             Console.WriteLine("Writing ICS...");
@@ -118,8 +121,6 @@ namespace OutlookToGoogle
                     sw.Write(FormattedEvent(item, created, false, true));
 
                     // SEQUENCE
-
-                    // BEGIN:VALARM/END:VALARM
                     // BUNCH OF X-ALT and X-MICROSOFT tags
 
                     sw.Write(exceptionevents);
@@ -247,6 +248,18 @@ namespace OutlookToGoogle
             str += "LAST-MODIFIED:" + item.LastModificationTime.ToUniversalTime().ToString(@"yyyyMMdd\THHmmssZ") + "\r\n";
             str += "DTSTAMP:" + item.CreationTime.ToUniversalTime().ToString(@"yyyyMMdd\THHmmssZ") + "\r\n";
 
+            // Reminder
+            if (item.ReminderSet)
+            {
+                str += "BEGIN:VALARM\r\n";
+
+                str += "TRIGGER:-PT" + item.ReminderMinutesBeforeStart + "M\r\n";
+
+                str += "ACTION:DISPLAY\r\n";
+                str += "DESCRIPTION:Reminder\r\n";
+
+                str += "END:VALARM\r\n";
+            }
 
             if (expandRecurring && item.IsRecurring)
             {
