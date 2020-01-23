@@ -21,6 +21,7 @@ The application is functional, however I would like to add several things to it:
 - [ ] In general, use full functionality of RFC5545 specs, instead of only the basics
 - [ ] And at any point, make the code a bit more consistent :)
 - [ ] Maybe switch from System.Threading.Timer to a scheduled Windows Service.
+- [ ] Directly interface with Google to upload calendar changes.
 
 ## Known issues
 - [ ] Cancelled events don't show as cancelled in Google Calendar
