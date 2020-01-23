@@ -28,6 +28,9 @@ namespace OutlookToGoogle
 
             this.checkBox1.Checked = Properties.Settings.Default.startWithSystem;
             this.checkBox2.Checked = Properties.Settings.Default.notifyOnChange;
+
+            this.numericUpDown1.Value = Properties.Settings.Default.rangeStart;
+            this.numericUpDown2.Value = Properties.Settings.Default.rangeEnd;
         }
 
         private void BtnFile_clicked(object sender, EventArgs e)
@@ -91,6 +94,13 @@ namespace OutlookToGoogle
             if(this.comboBox1.SelectedIndex != Properties.Settings.Default.updateFreq)
             {
                 Properties.Settings.Default.updateFreq = this.comboBox1.SelectedIndex;
+                runUpdate = true;
+            }
+
+            if(this.numericUpDown1.Value != Properties.Settings.Default.rangeStart || this.numericUpDown2.Value != Properties.Settings.Default.rangeEnd)
+            {
+                Properties.Settings.Default.rangeStart = Decimal.ToInt32(this.numericUpDown1.Value);
+                Properties.Settings.Default.rangeEnd = Decimal.ToInt32(this.numericUpDown2.Value);
                 runUpdate = true;
             }
             

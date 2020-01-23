@@ -82,5 +82,29 @@ namespace OutlookToGoogle.Properties {
                 this["icsName"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("-1")]
+        public int rangeStart {
+            get {
+                return ((int)(this["rangeStart"]));
+            }
+            set {
+                this["rangeStart"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2")]
+        public int rangeEnd {
+            get {
+                return ((int)(this["rangeEnd"]));
+            }
+            set {
+                this["rangeEnd"] = value;
+            }
+        }
     }
 }

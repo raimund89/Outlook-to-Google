@@ -17,5 +17,11 @@
     <Setting Name="icsName" Type="System.String" Scope="User">
       <Value Profile="(Default)">calendar</Value>
     </Setting>
+    <Setting Name="rangeStart" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">-1</Value>
+    </Setting>
+    <Setting Name="rangeEnd" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">2</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

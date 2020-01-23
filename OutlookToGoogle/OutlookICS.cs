@@ -44,8 +44,8 @@ namespace OutlookToGoogle
             Items calendarItems = (Items)calendarFolder.Items;
             calendarItems.IncludeRecurrences = true;
 
-            DateTime start = DateTime.Today.AddDays(-30);
-            DateTime end = DateTime.Today.AddDays(90);
+            DateTime start = DateTime.Today.AddMonths(Properties.Settings.Default.rangeStart);
+            DateTime end = DateTime.Today.AddMonths(Properties.Settings.Default.rangeEnd);
 
             foreach (AppointmentItem item in calendarItems)
             {
@@ -110,6 +110,8 @@ namespace OutlookToGoogle
 
                 foreach (AppointmentItem item in this.items)
                 {
+                    string exceptionevents = "";
+
                     sw.WriteLine("BEGIN:VEVENT");
 
                     sw.WriteLine("CREATED:" + created);
@@ -328,7 +330,7 @@ namespace OutlookToGoogle
                             Console.WriteLine("Found an exception to item " + item.Subject);
                             try
                             {
-                                sw.Write(FormattedException(exc.AppointmentItem, created));
+                                exceptionevents += FormattedException(exc.AppointmentItem, created);
                                 Console.WriteLine("Wrote the exception");
                             } 
                             catch(System.Runtime.InteropServices.COMException e)
@@ -344,6 +346,8 @@ namespace OutlookToGoogle
                     // BUNCH OF X-ALT and X-MICROSOFT tags
 
                     sw.WriteLine("END:VEVENT");
+
+                    sw.Write(exceptionevents);
                 }
 
                 sw.WriteLine("END:VCALENDAR");
