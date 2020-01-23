@@ -30,6 +30,6 @@ The application is functional, however I would like to add several things to it:
 - [ ] Summary doesn't have a language tag. Not required, but recommended
 - [ ] olResponseOrganized doesn't have the right partstat
 - [ ] The sensitivity 'private' doesn't have the right ICS classification
-- [ ] Reminders are not included
+- [ ] Only basic reminders are supported
 - [ ] Outlook itself exports a 'TRANSP' tag, no idea what to do with that...
 - [ ] Recurring Yearly, YearNth and Monthly events are not completely correct in the ICS
