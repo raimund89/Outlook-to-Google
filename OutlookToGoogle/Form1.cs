@@ -51,6 +51,8 @@ namespace OutlookToGoogle
 
         private void BtnOK_clicked(object sender, EventArgs e)
         {
+            bool runUpdate = false;
+
             // First, when user doesn't want it to start and that wasn't the case earlier, ask them to be sure
             if(Properties.Settings.Default.startWithSystem != this.checkBox1.Checked && !this.checkBox1.Checked)
             {
@@ -78,24 +80,31 @@ namespace OutlookToGoogle
                 // If that's ok, ask the user if they want to remove the old one
                 if (DialogResult.Yes == MessageBox.Show("Do you want to remove the old file?", "Clean up?", MessageBoxButtons.YesNo))
                     File.Delete(Program.GetICSPath());
-            }
 
-            // Save all settings
-            Properties.Settings.Default.icsPath = this.textBox1.Text;
-            Properties.Settings.Default.icsName = this.textBox2.Text;
+                // Save the new path
+                Properties.Settings.Default.icsPath = this.textBox1.Text;
+                Properties.Settings.Default.icsName = this.textBox2.Text;
+
+                runUpdate = true;
+            }
 
             if(this.comboBox1.SelectedIndex != Properties.Settings.Default.updateFreq)
             {
                 Properties.Settings.Default.updateFreq = this.comboBox1.SelectedIndex;
-                Properties.Settings.Default.Save();
-                Program.InitializeTimer();
+                runUpdate = true;
             }
             
             Properties.Settings.Default.startWithSystem = this.checkBox1.Checked;
-            Program.ToggleStartup(this.checkBox1.Checked);
 
             Properties.Settings.Default.notifyOnChange = this.checkBox2.Checked;
+
             Properties.Settings.Default.Save();
+
+            Program.ToggleStartup(Properties.Settings.Default.startWithSystem);
+
+            if (runUpdate)
+                Program.InitializeTimer();
+
             this.Close();
         }
     }
