@@ -25,6 +25,7 @@ The application is functional, however I would like to add several things to it:
 
 ## Known issues
 - [ ] Cancelled events don't show as cancelled in Google Calendar
+- [ ] Any exception to a recurring event is now seen as a cancellation, but this doesn't have to be the case of course!
 - [ ] Not nicely cleaning up, every calendar update the RAM-usage increases with 2-3 MB. But automatic cleanup does kick in at some point.
 - [ ] Summary doesn't have a language tag. Not required, but recommended
 - [ ] olResponseOrganized doesn't have the right partstat
