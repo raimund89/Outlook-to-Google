@@ -16,20 +16,18 @@ The application uses several libraries, all available through NuGet in Visual St
 
 ## Todo list
 The application is functional, however I would like to add several things to it:
-- [ ] Specify a start and end date. At the moment it's fixed at 30 days before and 90 days after today
 - [ ] Expand the amount of ICS tags exported, especially extended (non-RFC5545) tags used by Outlook
 - [ ] Implement calendar functions like CANCEL and UPDATE
 - [ ] In general, use full functionality of RFC5545 specs, instead of only the basics
 - [ ] And at any point, make the code a bit more consistent :)
-- [ ] Create installer
 - [ ] Maybe switch from System.Threading.Timer to a scheduled Windows Service.
 
 ## Known issues
+- [ ] Cancelled events don't show as cancelled in Google Calendar
 - [ ] Not nicely cleaning up, every calendar update the RAM-usage increases with 2-3 MB. But automatic cleanup does kick in at some point.
-- [ ] ICS validators say Europe/Amsterdam is not a valid timezone. Calendar programs don't have a problem though.
 - [ ] Summary doesn't have a language tag. Not required, but recommended
-- [ ] Recurring items are converted to multiple single items
 - [ ] olResponseOrganized doesn't have the right partstat
 - [ ] The sensitivity 'private' doesn't have the right ICS classification
 - [ ] Reminders are not included
 - [ ] Outlook itself exports a 'TRANSP' tag, no idea what to do with that...
+- [ ] Recurring Yearly, YearNth and Monthly events are not completely correct in the ICS
