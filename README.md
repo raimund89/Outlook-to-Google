@@ -1,12 +1,12 @@
 # Outlook-to-Google
 Standalone Windows Application to export an ICS-file that can be added to Google Calendar or any other calendar app.
 
-![Screenshot of settings](https://github.com/raimund89/Outlook-to-Google/blob/e5435ff5527049ae1a0120beda813edc4504e393/OutlookToGoogle.png)
-
 ## Introduction
 Outlook has several ways to send a calendar to others, either via E-mail or by publishing it to a directory. The problem is, this functionality leaves very little control over what to export and how. On top of that, the exported ICS is incompatible with most calendar applications (like Google Calendar or Lightning) because it doesn't comply with the ICS file specification ([RFC 5545](https://tools.ietf.org/html/rfc5545)).
 
 This standalone application allows exporting the calendar of the *current* Outlook user to be exported to an \*.ics file. If you place this file in for example Dropbox, it can then be imported into Google Calendar through it's Sharing link. The update frequency can be set to anything from every 5 minutes to every day.
+
+![Screenshot of settings](https://github.com/raimund89/Outlook-to-Google/blob/e5435ff5527049ae1a0120beda813edc4504e393/OutlookToGoogle.png)
 
 ## Notes on usage
 Currently, the ICS-file needs to be exported to a cloud-platform and then imported into Google Calendar by using the shared link. I've only tested this with Dropbox, but other platforms should work as well. I've found in Dropbox, that you need to change a small thing in the sharing link. The link ends with this sequence: ``"?dl=0"``. This indicates to Dropbox that it should show a preview-webpage. You don't want that, you want Dropbox to directly serve the file. Change this sequence to ```"?dl=1"``` does that, and this works fine.
